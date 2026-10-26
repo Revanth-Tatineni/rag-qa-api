@@ -1,0 +1,81 @@
+[project]
+name = "rag-qa-api"
+version = "0.1.0"
+description = "RAG Q&A API: document ingestion, hybrid retrieval (pgvector + Postgres full-text) with re-ranking, and cited answers from Claude."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "email-validator>=2.1",
+    "pyjwt>=2.8",
+    "pwdlib[argon2]>=0.2",
+    "python-multipart>=0.0.9",
+    "redis>=5.0",
+    "arq>=0.26",
+    "pgvector>=0.3",
+    "fastembed>=0.5",
+    "anthropic>=0.70",
+    "pypdf>=5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "httpx>=0.27",
+    "asgi-lifespan>=2.1",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "ASYNC", "RUF"]
+ignore = [
+    "B008",    # FastAPI's Depends() in defaults is the intended idiom
+    "SIM905",  # a split() word list reads better than a 150-item list literal
+]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = ["arq.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["app"]
+# SQLAlchemy's async layer runs DB code inside greenlets; without this, coverage misses it.
+concurrency = ["greenlet", "thread"]
+omit = ["app/workers/settings.py", "app/cli.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 90
